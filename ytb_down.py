@@ -22,6 +22,7 @@ def extract_urls(playlist_url: str) -> List[str]:
         # 범위를 크게 지정해서 첫 페이지만 먹고 끝나는 걸 회피
         "playlist_items": "1-100000",
         "ignoreerrors": True,
+        "retries": 10,
         # 필요하면 로그인 쿠키(비공개/연령제한 회피)
         # "cookiesfrombrowser": ("chrome",),  # 크롬 세션 사용
         # 또는 "cookiefile": "cookies.txt",
