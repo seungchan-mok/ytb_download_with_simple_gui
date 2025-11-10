@@ -5,7 +5,18 @@ import sys, re
 from typing import List
 
 def extract_urls(playlist_url: str) -> List[str]:
-    ydl_opts = {"extract_flat": True, "quiet": True, "skip_download": True}
+    ydl_opts = {
+        "quiet": True,
+        "skip_download": True,
+        # 플레이리스트일 때만 납작 추출 + 페이지네이션 수행
+        "extract_flat": "in_playlist",
+        # 범위를 크게 지정해서 첫 페이지만 먹고 끝나는 걸 회피
+        "playlist_items": "1-100000",
+        "ignoreerrors": True,
+        # 필요하면 로그인 쿠키(비공개/연령제한 회피)
+        # "cookiesfrombrowser": ("chrome",),  # 크롬 세션 사용
+        # 또는 "cookiefile": "cookies.txt",
+    }
     with YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(playlist_url, download=False)
     urls = []
@@ -59,7 +70,7 @@ def download_media():
         urls = extract_urls(youtube_url)
     else:
         urls = [youtube_url]
-
+    messagebox.showinfo("정보", f"{len(urls)}개의 항목을 다운로드합니다.")
     for url in urls:
         download(url, format_var.get(), show_message=False)
     messagebox.showinfo("완료", f"{len(urls)}개의 파일 다운로드가 완료되었습니다!")
