@@ -5,6 +5,7 @@ import sys, re
 from typing import List
 import threading
 import os
+import subprocess
 
 MAX_THREADS = max(1, min(os.cpu_count(), 8))
 thread_semaphore = threading.Semaphore(MAX_THREADS)
@@ -12,6 +13,20 @@ download_threads = []
 progress_lock = threading.Lock()
 completed_downloads = 0
 failed_downloads = []
+DOWNLOAD_DIRECTORY = os.path.abspath(os.getcwd())
+
+
+def open_download_folder():
+    """Open the download directory with the operating system's file manager."""
+    try:
+        if sys.platform.startswith("win"):
+            os.startfile(DOWNLOAD_DIRECTORY)
+        elif sys.platform == "darwin":
+            subprocess.Popen(["open", DOWNLOAD_DIRECTORY])
+        else:
+            subprocess.Popen(["xdg-open", DOWNLOAD_DIRECTORY])
+    except OSError as e:
+        print(f"Could not open download folder: {e}")
 
 def extract_urls(playlist_url: str) -> List[str]:
     ydl_opts = {
@@ -52,14 +67,14 @@ def download(url: str, format: str):
                 "preferredcodec": "mp3",
                 "preferredquality": "320",
             }],
-            "outtmpl": "%(title)s.%(ext)s",
+            "outtmpl": os.path.join(DOWNLOAD_DIRECTORY, "%(title)s.%(ext)s"),
             "quiet": True, # Suppress console output for threaded downloads
             "no_warnings": True, # Suppress warnings
         }
     else:  # mp4
         params = {
             "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4",
-            "outtmpl": "%(title)s.%(ext)s",
+            "outtmpl": os.path.join(DOWNLOAD_DIRECTORY, "%(title)s.%(ext)s"),
             "merge_output_format": "mp4",
             "quiet": True, # Suppress console output for threaded downloads
             "no_warnings": True, # Suppress warnings
@@ -98,6 +113,7 @@ def check_threads(total_urls):
         
         download_btn.config(state=tk.NORMAL)
         url_entry.config(state=tk.NORMAL)
+        open_download_folder()
 
 def download_media():
     youtube_url = url_entry.get().strip()
